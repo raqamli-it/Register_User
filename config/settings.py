@@ -190,3 +190,17 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',  # bu token auth uchun
     ),
 }
+
+
+
+STATIC_URL = '/static/'
+
+# Agar logo faylingiz `static/` papkasida bo'lsa
+STATICFILES_DIRS = [
+    BASE_DIR / "static", ]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Media fayllar uchun katalog
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
