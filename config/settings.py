@@ -25,7 +25,8 @@ SECRET_KEY = 'django-insecure-@4=8@-kzfs05a=nx#)mp3hx)zc*0@0tfq^@@40gb(0e34&#9(#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['register.digitallaboratory.uz', 'localhost', '127.0.0.1']
+
 
 
 # Application definition
@@ -191,9 +192,6 @@ REST_FRAMEWORK = {
     ),
 }
 
-
-
-STATIC_URL = '/static/'
 
 # Agar logo faylingiz `static/` papkasida bo'lsa
 STATICFILES_DIRS = [
