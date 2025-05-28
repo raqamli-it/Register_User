@@ -161,12 +161,17 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
-
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
+# .env faylni yuklash
 load_dotenv()
 
+# Loyihaning asosiy katalogi
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Google orqali autentifikatsiya sozlamalari
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': [
@@ -184,21 +189,21 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+# Django REST Framework sozlamalari
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication',  # bu token auth uchun
+        'rest_framework.authentication.TokenAuthentication',
     ),
 }
 
-
-# Agar logo faylingiz `static/` papkasida bo'lsa
+# Statik fayllar (CSS, JS, rasm)
 STATICFILES_DIRS = [
-    BASE_DIR / "static", ]
-
+    BASE_DIR / "static",
+]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Media fayllar uchun katalog
+# Media fayllar (rasmlar, videolar va h.k.)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
