@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager, User
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.utils import timezone
 from datetime import timedelta
 
@@ -38,23 +38,25 @@ class Foydalanuvchi(AbstractBaseUser, PermissionsMixin):
 
 
 class ResetCode(models.Model):
-    user = models.ForeignKey(Foydalanuvchi, on_delete=models.CASCADE)
-    code = models.CharField(max_length=6)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def is_expired(self):
-        return timezone.now() > self.created_at + timedelta(minutes=10)
-
-    def __str__(self):
-        return f"{self.user.email} - {self.code}"
-
-
-class VerificationCode(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     code = models.CharField(max_length=6)
-    created_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField()
+    created_at = models.DateTimeField(default=timezone.now)
+    expires_at = models.DateTimeField(default=timezone.now)
     is_used = models.BooleanField(default=False)
+
+    def is_expired(self):
+        return timezone.now() > self.created_at + timedelta(minutes=100)  # vaqtni 10 daqiqa qilganingiz yaxshi
 
     def __str__(self):
         return f"{self.user.email} - {self.code}"
+
+
+# class VerificationCode(models.Model):
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+#     code = models.CharField(max_length=6)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     expires_at = models.DateTimeField()
+#     is_used = models.BooleanField(default=False)
+#
+#     def __str__(self):
+#         return f"{self.user.email} - {self.code}"

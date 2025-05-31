@@ -1,25 +1,30 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from .models import Foydalanuvchi, ResetCode
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.utils.translation import gettext_lazy as _
+from .models import Foydalanuvchi
 
-class CustomUserAdmin(UserAdmin):
-    model = Foydalanuvchi
-    list_display = ('id', 'email', 'username', 'is_active', 'is_staff')
-    list_filter = ('is_staff', 'is_active')
+@admin.register(Foydalanuvchi)
+class FoydalanuvchiAdmin(BaseUserAdmin):
+    ordering = ['id']
+    list_display = ['email', 'is_staff', 'is_active']
+    search_fields = ['email']
+    readonly_fields = ['last_login']
+
     fieldsets = (
-        (None, {'fields': ('email', 'username', 'password')}),
-        ('Permissions', {'fields': ('is_staff', 'is_active', 'is_superuser')}),
-        ('Groups', {'fields': ('groups',)}),
-        ('User Permissions', {'fields': ('user_permissions',)}),
+        (None, {'fields': ('email', 'password')}),
+        (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        (_('Important dates'), {'fields': ('last_login',)}),
     )
+
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'username', 'password1', 'password2', 'is_staff', 'is_active')}
-        ),
+            'fields': ('email', 'password1', 'password2'),
+        }),
     )
-    search_fields = ('email',)
-    ordering = ('email',)
 
-admin.site.register(Foydalanuvchi, CustomUserAdmin)
-admin.site.register(ResetCode)
+    # Chunki USERNAME_FIELD = 'email'
+    def get_fieldsets(self, request, obj=None):
+        if not obj:
+            return self.add_fieldsets
+        return super().get_fieldsets(request, obj)

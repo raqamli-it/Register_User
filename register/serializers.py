@@ -1,7 +1,11 @@
 from rest_framework import serializers
-from .models import Foydalanuvchi
+from .models import Foydalanuvchi, ResetCode  # TasdiqlashKodni o'rniga VerificationCode
 from django.contrib.auth import authenticate
 import re
+# Yangi kod yaratish
+from django.utils.crypto import get_random_string
+from django.utils import timezone
+from datetime import timedelta
 
 class RegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -31,17 +35,54 @@ class LoginSerializer(serializers.Serializer):
         attrs['user'] = user
         return attrs
 
+
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+    def validate(self, attrs):
+        email = attrs.get('email')
+        try:
+            user = Foydalanuvchi.objects.get(email=email)
+        except Foydalanuvchi.DoesNotExist:
+            raise serializers.ValidationError("Bunday foydalanuvchi yo‘q.")
+
+
+        code = get_random_string(length=6, allowed_chars='0123456789')
+        ResetCode.objects.create(
+            user=user,
+            code=code,
+            expires_at=timezone.now() + timedelta(minutes=10),
+            is_used=False
+        )
+        print(f"Generated code for {email}: {code}")  # Log qo‘shildi
+        return attrs
 
 class VerifyCodeSerializer(serializers.Serializer):
     code = serializers.CharField(max_length=6)
 
 class SetNewPasswordSerializer(serializers.Serializer):
-    password = serializers.CharField()
-    password2 = serializers.CharField()
+    verification_code = serializers.CharField(max_length=6)
+    new_password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
 
-    def validate(self, data):
-        if data['password'] != data['password2']:
+    def validate(self, attrs):
+        code = attrs.get('verification_code')
+        password = attrs.get('new_password')
+        confirm_password = attrs.get('confirm_password')
+
+        if password != confirm_password:
             raise serializers.ValidationError("Parollar mos emas.")
-        return data
+
+        if not re.match(r'^\d{6}$', code):
+            raise serializers.ValidationError("Kod 6 ta raqamdan iborat bo‘lishi kerak.")
+
+        try:
+            reset = ResetCode.objects.get(code=code, is_used=False)
+            if reset.is_expired():
+                raise serializers.ValidationError("Kod muddati tugagan.")
+        except ResetCode.DoesNotExist:
+            raise serializers.ValidationError("Kod noto‘g‘ri yoki ishlatilgan.")
+
+        attrs['user'] = reset.user
+        attrs['verification_obj'] = reset
+        return attrs
