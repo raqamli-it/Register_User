@@ -1,5 +1,6 @@
 from time import timezone
 
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -28,10 +29,15 @@ class LoginView(APIView):
             "access": str(refresh.access_token),
         })
 
-class LogoutView(APIView):
+class LogoutAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
-        logout(request)
-        return Response({"msg": "Tizimdan chiqildi"}, status=200)
+        try:
+            request.user.auth_token.delete()
+            return Response({"msg": "Tizimdan chiqildi"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"error": "Token topilmadi"}, status=status.HTTP_400_BAD_REQUEST)
 
 class ForgotPasswordView(APIView):
     def post(self, request):
