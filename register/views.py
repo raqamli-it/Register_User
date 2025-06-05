@@ -14,7 +14,7 @@ class RegisterView(APIView):
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        return Response({"msg": "Foydalanuvchi muvaffaqiyatli ro'yxatdan o'tdi"}, status=201)
+        return Response({"msg": "Tasdiqlash kodingiz emailga yuborildi"}, status=201)
 
 class LoginView(APIView):
     def post(self, request):
@@ -85,3 +85,21 @@ class SetNewPasswordView(APIView):
             return Response({"success": "Parol muvaffaqiyatli o‘zgartirildi."})
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class VerifyEmailView(APIView):
+    def post(self, request):
+        code = request.data.get('code')
+
+        if not code:
+            return Response({'error': 'Kod kiritilishi kerak'}, status=400)
+
+        try:
+            user = Foydalanuvchi.objects.get(verification_code=code)
+        except Foydalanuvchi.DoesNotExist:
+            return Response({'error': 'Noto‘g‘ri yoki eskirgan tasdiqlash kodi'}, status=404)
+
+        user.is_active = True
+        user.verification_code = None  # kodni tozalaymiz
+        user.save()
+
+        return Response({'success': 'Email tasdiqlandi'}, status=200)
